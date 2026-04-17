@@ -10,12 +10,12 @@ import com.sentinel.common.dto.RiskResponse;
 
 public class RiskClientFallback implements RiskClient {
 	
-
+@Override
     public RiskResponse checkRisk(RiskRequest request) {
         return RiskResponse.builder()
                 .status("PENDING")
                 .riskScore(0)
-                .reason("Risk Engine is currently unreachable. Queued for manual review.")
+                .reason("Risk Engine unreachable for " + request.getCustomerId() + ". Queued for review.")
                 .build();
     }
 

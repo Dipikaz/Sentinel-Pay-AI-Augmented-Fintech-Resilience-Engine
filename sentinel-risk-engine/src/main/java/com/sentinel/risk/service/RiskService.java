@@ -22,16 +22,16 @@ public class RiskService {
                     .build();
         }
 
-        // 2. Threshold Logic
+  
         int score = calculateScore(request.getAmount());
         
-        // 3. Final Decision Logic
+       
         String status = (score >= 70) ? "REJECTED" : "APPROVED";
 
         return RiskResponse.builder()
                 .riskScore(score)
                 .status(status)
-                .reason(status.equals("REJECTED") ? "High amount" : "Safe transaction")
+                .reason(status.equals("REJECTED") ? "High amount" : "Low risk transaction")
                 .build();
     }
 
@@ -40,12 +40,11 @@ public class RiskService {
 	        return 0;
 	    }
 
-	    // 2. Comparison Logic: 
-	    // compareTo returns: 1 if greater, 0 if equal, -1 if less.
+	    
 	    if (amount.compareTo(new BigDecimal("10000")) > 0) {
-	        return 90; // High Risk
+	        return 90; 
 	    } else if (amount.compareTo(new BigDecimal("5000")) > 0) {
-	        return 50; // Medium Risk
+	        return 50; 
 	    }
 	    
 	    return 10;

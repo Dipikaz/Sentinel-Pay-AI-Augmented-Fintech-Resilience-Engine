@@ -1,0 +1,26 @@
+{
+  "id" : "62b8b99f-e64d-448e-a8a4-e0ac9f7db1bb",
+  "request" : {
+    "url" : "/api/v1/risk/check",
+    "method" : "POST",
+    "headers" : {
+      "Content-Type" : {
+        "matches" : "application/json.*"
+      }
+    },
+    "bodyPatterns" : [ {
+      "matchesJsonPath" : "$[?(@.['customerId'] == 'C_TEST_001')]"
+    }, {
+      "matchesJsonPath" : "$[?(@.['amount'] == 100.00)]"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"status\":\"APPROVED\",\"riskScore\":10,\"reason\":\"Low risk transaction\"}",
+    "headers" : {
+      "Content-Type" : "application/json"
+    },
+    "transformers" : [ "response-template", "spring-cloud-contract" ]
+  },
+  "uuid" : "62b8b99f-e64d-448e-a8a4-e0ac9f7db1bb"
+}

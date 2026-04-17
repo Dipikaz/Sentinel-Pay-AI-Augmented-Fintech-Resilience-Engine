@@ -1,0 +1,5 @@
+com/sentinel/transaction/repository/TransactionRepositoryTest.class
+com/sentinel/transaction/service/TransactionServiceTest.class
+com/sentinel/transaction/e2e/TransactionE2ETest.class
+com/sentinel/transaction/controller/TransactionControllerTest.class
+com/sentinel/transaction/service/BaseTest.class

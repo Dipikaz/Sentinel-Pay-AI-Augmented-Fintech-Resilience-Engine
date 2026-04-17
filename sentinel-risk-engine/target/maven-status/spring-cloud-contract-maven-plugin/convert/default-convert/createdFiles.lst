@@ -1,0 +1,4 @@
+META-INF/com.sentinel/sentinel-risk-engine/0.0.1-SNAPSHOT/contracts/checkRisk.groovy
+META-INF/com.sentinel/sentinel-risk-engine/0.0.1-SNAPSHOT/mappings/checkRisk.json
+META-INF/com.sentinel/sentinel-risk-engine/0.0.1-SNAPSHOT/mappings/shouldReturnApprovedForLowRisk.json
+META-INF/com.sentinel/sentinel-risk-engine/0.0.1-SNAPSHOT/contracts/shouldReturnApprovedForLowRisk.groovy

@@ -2,7 +2,7 @@ package com.sentinel.transaction.mapper;
 
 import org.springframework.stereotype.Component;
 import com.sentinel.transaction.dto.PaymentRequest;
-import com.sentinel.transaction.dto.PaymentResponse; // MUST BE THIS ONE
+import com.sentinel.common.dto.TransactionResponse; // Import the shared DTO
 import com.sentinel.common.dto.RiskRequest;
 import com.sentinel.common.dto.RiskResponse;
 import java.util.UUID;
@@ -17,12 +17,13 @@ public class TransactionMapper {
                 .build();
     }
 
-    // THE FIX: Ensure this returns PaymentResponse, not a String or Builder
-    public PaymentResponse toPaymentResponse(RiskResponse riskRes) {
-        return PaymentResponse.builder()
+    // UPDATED: Now returns the shared TransactionResponse DTO
+    public TransactionResponse toTransactionResponse(RiskResponse riskRes) {
+        return TransactionResponse.builder()
                 .status(riskRes.getStatus())
-                .message(riskRes.getReason())
-                .transactionId(UUID.randomUUID().toString())
+                // Ensure these field names match your TransactionResponse class
+                .riskScore(riskRes.getRiskScore()) 
+                .reason(riskRes.getReason())
                 .build();
     }
 }
