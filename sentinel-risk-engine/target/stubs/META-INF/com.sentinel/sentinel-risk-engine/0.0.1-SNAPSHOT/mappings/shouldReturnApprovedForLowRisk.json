@@ -1,5 +1,5 @@
 {
-  "id" : "62b8b99f-e64d-448e-a8a4-e0ac9f7db1bb",
+  "id" : "554555d6-29c2-40cd-962f-94972f37b2d4",
   "request" : {
     "url" : "/api/v1/risk/check",
     "method" : "POST",
@@ -22,5 +22,5 @@
     },
     "transformers" : [ "response-template", "spring-cloud-contract" ]
   },
-  "uuid" : "62b8b99f-e64d-448e-a8a4-e0ac9f7db1bb"
+  "uuid" : "554555d6-29c2-40cd-962f-94972f37b2d4"
 }

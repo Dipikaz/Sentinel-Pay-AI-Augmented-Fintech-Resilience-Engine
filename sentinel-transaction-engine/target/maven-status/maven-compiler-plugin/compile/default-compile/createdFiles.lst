@@ -1,13 +1,12 @@
-com/sentinel/transaction/dto/PaymentRequest.class
 com/sentinel/transaction/entity/TransactionRecord.class
+com/sentinel/transaction/consumer/RiskResultConsumer.class
 com/sentinel/transaction/client/RiskClient.class
 com/sentinel/transaction/config/FeignConfig.class
 com/sentinel/transaction/TransactionApplication.class
-com/sentinel/transaction/dto/PaymentResponse.class
+com/sentinel/transaction/service/TransactionProducer.class
 com/sentinel/transaction/service/TransactionService.class
 com/sentinel/transaction/exception/GlobalExceptionHandler.class
 com/sentinel/transaction/controller/TransactionController.class
 com/sentinel/transaction/repository/TransactionRepository.class
 com/sentinel/transaction/client/RiskClientFallback.class
-com/sentinel/transaction/dto/PaymentResponse$PaymentResponseBuilder.class
 com/sentinel/transaction/mapper/TransactionMapper.class

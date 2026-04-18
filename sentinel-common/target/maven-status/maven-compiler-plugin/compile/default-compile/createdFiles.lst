@@ -1,6 +1,12 @@
-com/sentinel/common/dto/RiskResponse.class
+com/sentinel/common/dto/PaymentRequest$PaymentRequestBuilder.class
+com/sentinel/common/dto/PaymentResponse.class
 com/sentinel/common/dto/TransactionResponse$TransactionResponseBuilder.class
-com/sentinel/common/dto/RiskResponse$RiskResponseBuilder.class
+com/sentinel/common/dto/RiskResultMessage$RiskResultMessageBuilder.class
 com/sentinel/common/dto/RiskRequest$RiskRequestBuilder.class
-com/sentinel/common/dto/RiskRequest.class
 com/sentinel/common/dto/TransactionResponse.class
+com/sentinel/common/dto/RiskResponse.class
+com/sentinel/common/dto/RiskResponse$RiskResponseBuilder.class
+com/sentinel/common/dto/PaymentResponse$PaymentResponseBuilder.class
+com/sentinel/common/dto/RiskRequest.class
+com/sentinel/common/dto/RiskResultMessage.class
+com/sentinel/common/dto/PaymentRequest.class

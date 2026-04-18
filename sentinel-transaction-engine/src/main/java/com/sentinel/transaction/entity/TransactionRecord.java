@@ -22,5 +22,9 @@ public class TransactionRecord {
     private String status;
     private Integer riskScore;
     private LocalDateTime createdAt;
+    @Column(name = "transaction_id", unique = true)
+    private String transactionId;
+    private String Currency;
+    private String reason;
 
 }

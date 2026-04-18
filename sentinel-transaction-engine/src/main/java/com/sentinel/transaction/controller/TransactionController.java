@@ -1,28 +1,28 @@
 package com.sentinel.transaction.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.sentinel.transaction.dto.PaymentRequest;
-// 1. CHANGE THIS IMPORT
-import com.sentinel.common.dto.TransactionResponse; 
+import com.sentinel.common.dto.PaymentRequest;
+import com.sentinel.common.dto.TransactionResponse;
 import com.sentinel.transaction.service.TransactionService;
-
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/payments")
+@RequiredArgsConstructor 
 public class TransactionController {
-    
-    @Autowired
-    private TransactionService transactionService;
-    
+
+    private final TransactionService transactionService;
+
     @PostMapping("/process")
-    // 2. CHANGE RETURN TYPE TO TransactionResponse
-    public TransactionResponse process(@Valid @RequestBody PaymentRequest request) { 
-        return transactionService.processPayment(request); 
+    public ResponseEntity<TransactionResponse> process(@RequestBody PaymentRequest request) {
+        try {
+            // If service logic passes, return 200 OK
+            TransactionResponse response = transactionService.processTransaction(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+         
+            return ResponseEntity.badRequest().build(); 
+        }
     }
 }

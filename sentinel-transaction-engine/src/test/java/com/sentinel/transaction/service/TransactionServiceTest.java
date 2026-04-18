@@ -4,15 +4,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.sentinel.common.dto.RiskRequest;
-import com.sentinel.common.dto.RiskResponse;
+import com.sentinel.common.dto.PaymentRequest;
 import com.sentinel.common.dto.TransactionResponse;
-import com.sentinel.transaction.client.RiskClient;
-import com.sentinel.transaction.dto.PaymentRequest;
 import com.sentinel.transaction.entity.TransactionRecord;
-import com.sentinel.transaction.mapper.TransactionMapper;
 import com.sentinel.transaction.repository.TransactionRepository;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,108 +15,102 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest extends BaseTest {
 
     @Mock
-    private RiskClient riskClient;
-
-    @Mock
     private TransactionRepository transactionRepository;
 
     @Mock
-    private TransactionMapper mapper;
+    private TransactionProducer transactionProducer;
 
     @InjectMocks
     private TransactionService transactionService;
 
     @Test
-    public void testProcessPayment_Success() {
+    public void testProcessTransaction_Success() {
         // 1. Arrange
-        test = extent.createTest("Transaction Success Path - Risk Approved");
-        PaymentRequest request = new PaymentRequest("C_TEST_001", new BigDecimal("100.00"), "USD");
+        PaymentRequest request = PaymentRequest.builder()
+                .transactionId(UUID.randomUUID().toString())
+                .customerId("C_TEST_001")
+                .amount(new BigDecimal("100.00"))
+                .currency("USD")
+                .build();
         
-        RiskResponse mockRiskResponse = RiskResponse.builder()
-                .status("APPROVED").riskScore(10).reason("Low Risk").build();
-
-        TransactionResponse mockFinalResponse = TransactionResponse.builder()
-                .status("APPROVED").riskScore(10).build();
-        
-        // Stubbing
-        when(mapper.toRiskRequest(any())).thenReturn(new RiskRequest());
-        when(riskClient.checkRisk(any())).thenReturn(mockRiskResponse);
-        when(transactionRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
-        when(mapper.toTransactionResponse(any())).thenReturn(mockFinalResponse);
+        when(transactionRepository.save(any(TransactionRecord.class))).thenAnswer(invocation -> {
+            TransactionRecord record = invocation.getArgument(0);
+            record.setId(1L); 
+            return record;
+        });
 
         // 2. Act
-        TransactionResponse result = transactionService.processPayment(request); 
+        TransactionResponse result = transactionService.processTransaction(request);
         
-        // 3. Assert & Verify
+        // 3. Assert
         assertNotNull(result);
-        assertEquals("APPROVED", result.getStatus());
-        verify(transactionRepository, times(1)).save(any());
-        test.pass("Successfully verified Happy Path: APPROVED");
+        assertEquals("PROCESSING", result.getStatus());
+        assertEquals("C_TEST_001", result.getCustomerId());
+        
+        verify(transactionRepository, times(1)).save(any(TransactionRecord.class));
+        verify(transactionProducer, times(1)).sendTransaction(any(PaymentRequest.class));
+        
+        test.pass("Successfully verified Async Path: Data persisted and sent to Kafka");
     }
 
     @Test
-    public void testProcessPayment_RiskDenied() {
+    public void testProcessTransaction_KafkaFailure() {
         // 1. Arrange
-        test = extent.createTest("Transaction Negative Path - Risk Denied");
-        PaymentRequest request = new PaymentRequest("C_FRAUD_99", new BigDecimal("9999.99"), "USD");
+        PaymentRequest request = PaymentRequest.builder()
+                .customerId("C_TEST_001")
+                .amount(new BigDecimal("100.00"))
+                .currency("USD")
+                .build();
         
-        RiskResponse mockRiskResponse = RiskResponse.builder()
-                .status("DENIED").riskScore(95).reason("High Fraud Risk").build();
+        // Ensure the mock save returns a record with an ID so the service doesn't NPE
+        when(transactionRepository.save(any(TransactionRecord.class))).thenAnswer(i -> {
+            TransactionRecord r = i.getArgument(0);
+            r.setId(99L);
+            return r;
+        });
 
-        TransactionResponse mockFinalResponse = TransactionResponse.builder()
-                .status("DENIED").riskScore(95).build();
+        doThrow(new RuntimeException("Kafka Broker Unreachable"))
+            .when(transactionProducer).sendTransaction(any());
+
+        // 2. Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            transactionService.processTransaction(request);
+        });
+
+        // Check if message matches the String thrown in your Service
+        assertTrue(exception.getMessage().contains("Failed to publish transaction event"));
         
-        // Stubbing
-        when(mapper.toRiskRequest(any())).thenReturn(new RiskRequest());
-        when(riskClient.checkRisk(any())).thenReturn(mockRiskResponse);
-        when(transactionRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
-        when(mapper.toTransactionResponse(any())).thenReturn(mockFinalResponse);
+        // Verify DB updated to FAILED (at least 2 saves: initial and failure update)
+        verify(transactionRepository, atLeast(2)).save(any(TransactionRecord.class));
+        
+        test.pass("Verified Resilience: DB status updated to FAILED on Kafka crash");
+    }
+
+    @Test
+    public void testProcessTransaction_FieldValidation() {
+        // 1. Arrange
+        PaymentRequest request = PaymentRequest.builder()
+                .customerId("C_NEW_USER")
+                .amount(new BigDecimal("50.00"))
+                .currency("USD")
+                .build();
+
+        when(transactionRepository.save(any(TransactionRecord.class))).thenAnswer(i -> i.getArguments()[0]);
 
         // 2. Act
-        TransactionResponse result = transactionService.processPayment(request);
+        TransactionResponse result = transactionService.processTransaction(request);
 
-        // 3. Assert & Verify
-        assertNotNull(result);
-        assertEquals("DENIED", result.getStatus());
-        // CRITICAL: Verify that we still saved the record even though it failed
-        verify(transactionRepository, times(1)).save(any());
-        test.pass("Successfully verified Negative Path: DENIED status recorded correctly");
+        // 3. Assert
+        assertNotNull(result.getTransactionId(), "Service should generate a UUID");
+        assertEquals("PROCESSING", result.getStatus());
+        // 🔥 REMOVED the stray Kafka exception check that was causing the failure here
+        
+        test.pass("Field validation logic passed and ID generated");
     }
-    
-    
-    @Test
-    public void testProcessPayment_RiskEngineDown() {
-    	
-    	
-    	test = extent.createTest("Resilience Path - Risk Engine Connectivity Failure");
-        PaymentRequest request = new PaymentRequest("C_TEST_001", new BigDecimal("100.00"), "USD");
-    	
-        when(mapper.toRiskRequest(any())).thenReturn(new RiskRequest());
-        when(riskClient.checkRisk(any())).thenThrow(new RuntimeException("Risk Engine is Unreachable"));
-        
-        
-  
-        assertThrows(RuntimeException.class, () -> {
-            transactionService.processPayment(request);
-        }, "Expected processPayment to throw RuntimeException when Risk Engine is down");
-        test.pass("Resilience Verified: System correctly identified downstream failure");
-        verify(transactionRepository, times(0)).save(any());
-        test.info("Verification: No data persisted during network failure, maintaining data integrity");
-        
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }

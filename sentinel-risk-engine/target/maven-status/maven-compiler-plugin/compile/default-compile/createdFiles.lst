@@ -1,3 +1,5 @@
+com/sentinel/risk/producer/RiskResultProducer.class
+com/sentinel/risk/consumer/TransactionConsumer.class
 com/sentinel/risk/controller/RiskController.class
 com/sentinel/risk/service/RiskService.class
 com/sentinel/risk/RiskApplication.class

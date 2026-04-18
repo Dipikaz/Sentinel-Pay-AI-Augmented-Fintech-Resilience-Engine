@@ -1,6 +1,8 @@
 package com.sentinel.risk.service;
 
 import org.springframework.stereotype.Service;
+
+import com.sentinel.common.dto.PaymentRequest;
 import com.sentinel.common.dto.RiskRequest;
 import com.sentinel.common.dto.RiskResponse;
 import java.math.BigDecimal;
@@ -12,7 +14,7 @@ public class RiskService {
 	
 	private final List<String> blacklistedCustomers = List.of("C_FRAUD_99", "C_SCAM_01");
 
-    public RiskResponse evaluateRisk(RiskRequest request) {
+    public RiskResponse evaluateRisk(PaymentRequest request) {
         // 1. Blacklist Logic
         if (blacklistedCustomers.contains(request.getCustomerId())) {
             return RiskResponse.builder()

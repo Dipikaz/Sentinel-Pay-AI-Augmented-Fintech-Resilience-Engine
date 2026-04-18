@@ -1,4 +1,4 @@
-package com.sentinel.transaction.dto;
+package com.sentinel.common.dto;
 
 
 import lombok.AllArgsConstructor;

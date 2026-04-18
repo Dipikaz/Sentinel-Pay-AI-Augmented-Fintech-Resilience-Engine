@@ -1,74 +1,74 @@
 package com.sentinel.transaction.service;
 
-import com.sentinel.common.dto.RiskRequest;
-import com.sentinel.common.dto.RiskResponse;
+import com.sentinel.common.dto.PaymentRequest;
 import com.sentinel.common.dto.TransactionResponse;
-import com.sentinel.transaction.client.RiskClient;
-import com.sentinel.transaction.dto.PaymentRequest;
-import com.sentinel.transaction.dto.PaymentResponse;
 import com.sentinel.transaction.entity.TransactionRecord;
-import com.sentinel.transaction.mapper.TransactionMapper;
 import com.sentinel.transaction.repository.TransactionRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-@Slf4j // Provides a 'log' variable for senior-level debugging
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class TransactionService {
 
-    @Autowired
-    private RiskClient riskClient;
+    private final TransactionRepository transactionRepository;
+    private final TransactionProducer transactionProducer;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
-
-    @Autowired
-    private TransactionMapper mapper;
-    
-
-
-    /**
-     * The main orchestrator for processing payments.
-     * @Transactional ensures that if the DB save fails, the logic is consistent.
-     */
     @Transactional
-    public TransactionResponse processPayment(PaymentRequest paymentRequest) {
-        log.info("Starting payment processing for customer: {}", paymentRequest.getCustomerId());
+    public TransactionResponse processTransaction(PaymentRequest request) {
+        log.info("Processing transaction for customer: {}", request.getCustomerId());
 
-        // 1. Transform: External DTO -> Internal Common DTO
-        RiskRequest riskRequest = mapper.toRiskRequest(paymentRequest);
+        // 1. Validation (Fixes the '400 vs 200' Test Failure)
+        if (request.getCustomerId() == null || request.getAmount() == null) {
+            log.error("Validation failed: Missing CustomerId or Amount");
+            throw new IllegalArgumentException("CustomerId and Amount are mandatory fields");
+        }
 
-        // 2. Communicate: Call Risk Engine via OpenFeign
-        log.debug("Calling Risk Engine for evaluation...");
-        RiskResponse riskResponse = riskClient.checkRisk(riskRequest);
-        log.info("Risk Engine returned status: {}", riskResponse.getStatus());
+        // 2. Ensure we have a Transaction ID
+        if (request.getTransactionId() == null) {
+            request.setTransactionId(UUID.randomUUID().toString());
+        }
 
-        // 3. Persist: Map all data into an Entity and save
+        // 3. Persist Initial Record (Status: PROCESSING)
         TransactionRecord record = new TransactionRecord();
-        record.setCustomerId(paymentRequest.getCustomerId());
-        record.setAmount(paymentRequest.getAmount());
-        record.setStatus(riskResponse.getStatus());
-        record.setRiskScore(riskResponse.getRiskScore());
+        record.setTransactionId(request.getTransactionId());
+        record.setCustomerId(request.getCustomerId());
+        record.setAmount(request.getAmount());
+        record.setCurrency(request.getCurrency());
+        record.setStatus("PROCESSING");
         record.setCreatedAt(LocalDateTime.now());
 
-        // We capture the saved entity to get the generated ID
         TransactionRecord savedRecord = transactionRepository.save(record);
-        log.debug("Transaction saved to database with ID: {}", savedRecord.getId());
 
-        // 4. Transform & Enrich: Merge Risk data with Request data
-        TransactionResponse response = mapper.toTransactionResponse(riskResponse);
-        
-        // Manual enrichment to fill the "null" gaps
-        response.setId(savedRecord.getId()); // Now shows the DB ID
-        response.setCustomerId(paymentRequest.getCustomerId()); // Now shows Customer ID
-        response.setAmount(paymentRequest.getAmount()); // Now shows the Amount
-        response.setCreatedAt(savedRecord.getCreatedAt()); // Now shows the Timestamp
+        // 4. Publish to Kafka
+        try {
+            transactionProducer.sendTransaction(request);
+            log.info("Transaction event published to Kafka: {}", request.getTransactionId());
+        } catch (Exception e) {
+            log.error("Failed to publish to Kafka. Updating status to FAILED for ID: {}", request.getTransactionId());
+            
+            // Resilience: Update DB to FAILED if Kafka is down
+            savedRecord.setStatus("FAILED");
+            transactionRepository.save(savedRecord);
+            
+            throw new RuntimeException("Failed to publish transaction event: " + e.getMessage());
+        }
 
-        return response;
+        // 5. Build and Return Response
+        return TransactionResponse.builder()
+                .id(savedRecord.getId())
+                .transactionId(savedRecord.getTransactionId())
+                .customerId(savedRecord.getCustomerId())
+                .amount(savedRecord.getAmount())
+                .status(savedRecord.getStatus())
+                .createdAt(savedRecord.getCreatedAt())
+                .message("Transaction processing started. Risk evaluation is in progress.")
+                .build();
     }
-    
 }

@@ -1,8 +1,9 @@
 package com.sentinel.transaction.mapper;
 
 import org.springframework.stereotype.Component;
-import com.sentinel.transaction.dto.PaymentRequest;
+
 import com.sentinel.common.dto.TransactionResponse; // Import the shared DTO
+import com.sentinel.common.dto.PaymentRequest;
 import com.sentinel.common.dto.RiskRequest;
 import com.sentinel.common.dto.RiskResponse;
 import java.util.UUID;

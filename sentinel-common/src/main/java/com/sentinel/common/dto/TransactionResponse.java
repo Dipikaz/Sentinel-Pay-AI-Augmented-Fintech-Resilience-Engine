@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 
 
 @Data
+
 @Builder
+	
+	
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -23,5 +26,8 @@ public class TransactionResponse {
     private Integer riskScore;
     private String reason;
     private LocalDateTime createdAt;
+    private String transactionId;
+    private String message;
+    
 
 }
