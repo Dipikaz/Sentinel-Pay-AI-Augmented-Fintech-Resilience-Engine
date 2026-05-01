@@ -1,5 +1,7 @@
+/Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/contract/ContractIntegrationTest.java
 /Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/controller/TransactionControllerTest.java
 /Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/e2e/TransactionE2ETest.java
+/Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/integration/EndToEndTransactionTest.java
 /Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/repository/TransactionRepositoryTest.java
 /Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/service/BaseTest.java
 /Users/dipika/Desktop/SDET with Jatin/RestAssuredAPITesting/APITestingRest/sentinel-parent/sentinel-transaction-engine/src/test/java/com/sentinel/transaction/service/TransactionServiceTest.java

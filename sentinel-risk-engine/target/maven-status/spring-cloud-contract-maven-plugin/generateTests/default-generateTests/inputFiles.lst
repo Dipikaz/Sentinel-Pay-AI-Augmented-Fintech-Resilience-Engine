@@ -1,2 +1,1 @@
-checkRisk.groovy
-shouldReturnApprovedForLowRisk.groovy
+shouldSendRikslResult.groovy

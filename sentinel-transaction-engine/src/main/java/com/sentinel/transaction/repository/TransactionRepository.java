@@ -9,13 +9,9 @@ import com.sentinel.transaction.entity.*;
 
 
 @Repository
-
-public interface TransactionRepository extends JpaRepository<TransactionRecord, Long>{
-	
-	Optional<TransactionRecord> findByTransactionId(String transactionId);
-	
+public interface TransactionRepository extends JpaRepository<TransactionRecord, Long> {
+    // This MUST exist for the listener to find the record by "test-id-123"
+    Optional<TransactionRecord> findByTransactionId(String transactionId);
 }
-
-
 
 

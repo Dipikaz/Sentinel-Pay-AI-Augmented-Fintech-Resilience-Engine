@@ -1,0 +1,29 @@
+---
+request: null
+response: null
+input:
+  triggeredBy: "sendApprovedResult()"
+  assertThat: null
+outputMessage:
+  sentTo: "risk-results"
+  headers:
+    contentType: "application/json"
+  body:
+    transactionId: "test-id-123"
+    status: "APPROVED"
+    riskScore: 10
+    reason: "Low risk transaction"
+  bodyFromFile: null
+  bodyFromFileAsBytes: null
+  assertThat: null
+  matchers:
+    body: []
+    headers: []
+    cookies: []
+description: "Should send an APPROVED risk result message to the risk-results topic"
+label: "risk_result_approved"
+name: "shouldSendRikslResult"
+priority: null
+ignored: false
+inProgress: false
+metadata: {}

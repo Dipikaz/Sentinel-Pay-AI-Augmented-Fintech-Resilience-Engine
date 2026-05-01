@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: Plexus Archiver 4.8.0
+Spring-Cloud-Contract-Maven-Plugin-Version: 4.1.0
+

@@ -7,6 +7,7 @@ com/sentinel/transaction/service/TransactionProducer.class
 com/sentinel/transaction/service/TransactionService.class
 com/sentinel/transaction/exception/GlobalExceptionHandler.class
 com/sentinel/transaction/controller/TransactionController.class
+com/sentinel/transaction/listener/TransactionListener.class
 com/sentinel/transaction/repository/TransactionRepository.class
 com/sentinel/transaction/client/RiskClientFallback.class
 com/sentinel/transaction/mapper/TransactionMapper.class

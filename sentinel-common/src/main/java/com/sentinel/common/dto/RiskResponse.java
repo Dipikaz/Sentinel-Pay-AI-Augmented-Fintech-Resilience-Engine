@@ -1,22 +1,21 @@
 package com.sentinel.common.dto;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+@Data // 👈 This automatically creates getTransactionId(), getStatus(), etc.
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-
-public class RiskResponse implements Serializable {
+public class RiskResponse {
 	
-	
-	private static final long serialVersionUID = 1L;
-
-    private String status;      // e.g., "APPROVED", "REJECTED", "REVIEW"
-    private Integer riskScore;  // 0 to 100
+	@JsonProperty("transactionId")
+    private String transactionId;
+    private String status;
+    private int riskScore;
     private String reason;
-
 }

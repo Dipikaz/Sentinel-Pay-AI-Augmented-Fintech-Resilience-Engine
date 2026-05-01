@@ -5,56 +5,39 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
-import io.restassured.response.ResponseOptions;
+import javax.inject.Inject;
+import org.springframework.cloud.contract.verifier.messaging.internal.ContractVerifierObjectMapper;
+import org.springframework.cloud.contract.verifier.messaging.internal.ContractVerifierMessage;
+import org.springframework.cloud.contract.verifier.messaging.internal.ContractVerifierMessaging;
 
 import static org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat;
 import static org.springframework.cloud.contract.verifier.util.ContractVerifierUtil.*;
 import static com.toomuchcoding.jsonassert.JsonAssertion.assertThatJson;
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
+import static org.springframework.cloud.contract.verifier.messaging.util.ContractVerifierMessagingUtil.headers;
+import static org.springframework.cloud.contract.verifier.util.ContractVerifierUtil.fileToBytes;
 
 @SuppressWarnings("rawtypes")
 public class ContractVerifierTest extends BaseContractTest {
+	@Inject ContractVerifierMessaging contractVerifierMessaging;
+	@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
 
 	@Test
-	public void validate_checkRisk() throws Exception {
-		// given:
-			MockMvcRequestSpecification request = given()
-					.header("Content-Type", "application/json")
-					.body("{\"customerId\":\"C_TEST_001\",\"amount\":100.00}");
-
+	public void validate_shouldSendRikslResult() throws Exception {
 		// when:
-			ResponseOptions response = given().spec(request)
-					.post("/api/v1/risk/check");
+			sendApprovedResult();
 
 		// then:
-			assertThat(response.statusCode()).isEqualTo(200);
-			assertThat(response.header("Content-Type")).matches("application/json.*");
+			ContractVerifierMessage response = contractVerifierMessaging.receive("risk-results",
+					contract(this, "shouldSendRikslResult.yml"));
+			assertThat(response).isNotNull();
 
 		// and:
-			DocumentContext parsedJson = JsonPath.parse(response.getBody().asString());
-			assertThatJson(parsedJson).field("['status']").isEqualTo("APPROVED");
-			assertThatJson(parsedJson).field("['riskScore']").isEqualTo(10);
-			assertThatJson(parsedJson).field("['reason']").isEqualTo("Low risk transaction");
-	}
-
-	@Test
-	public void validate_shouldReturnApprovedForLowRisk() throws Exception {
-		// given:
-			MockMvcRequestSpecification request = given()
-					.header("Content-Type", "application/json")
-					.body("{\"customerId\":\"C_TEST_001\",\"amount\":100.00}");
-
-		// when:
-			ResponseOptions response = given().spec(request)
-					.post("/api/v1/risk/check");
-
-		// then:
-			assertThat(response.statusCode()).isEqualTo(200);
-			assertThat(response.header("Content-Type")).matches("application/json.*");
+			assertThat(response.getHeader("contentType")).isNotNull();
+			assertThat(response.getHeader("contentType").toString()).isEqualTo("application/json");
 
 		// and:
-			DocumentContext parsedJson = JsonPath.parse(response.getBody().asString());
+			DocumentContext parsedJson = JsonPath.parse(contractVerifierObjectMapper.writeValueAsString(response.getPayload()));
+			assertThatJson(parsedJson).field("['transactionId']").isEqualTo("test-id-123");
 			assertThatJson(parsedJson).field("['status']").isEqualTo("APPROVED");
 			assertThatJson(parsedJson).field("['riskScore']").isEqualTo(10);
 			assertThatJson(parsedJson).field("['reason']").isEqualTo("Low risk transaction");
